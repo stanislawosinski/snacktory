@@ -122,7 +122,13 @@ public class HtmlFetcherTest {
 
     @Test
     public void testXml() throws Exception {
-        String str = new HtmlFetcher().fetchAsString("http://karussell.wordpress.com/feed/", 10000);
+        String str = new HtmlFetcher().fetchAsString("http://karussell.wordpress.com/feed/", 10000, null);
         assertTrue(str, str.startsWith("<?xml version="));
+    }
+    
+    @Test
+    public void test404() throws Exception {
+        JResult res = new HtmlFetcher().fetchAndExtract("http://www.westonline.nl/nieuwsitem//51012", 10000, true);
+        assertEquals(404, res.getResponseCode());
     }
 }

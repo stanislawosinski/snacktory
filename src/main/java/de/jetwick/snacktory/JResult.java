@@ -20,7 +20,7 @@ package de.jetwick.snacktory;
  * 
  * @author Peter Karich, jetwick_@_pannous_._info
  */
-public class JResult {
+public class JResult implements RequestStatus {
 
     private String title;
     private String url;
@@ -32,6 +32,7 @@ public class JResult {
     private String faviconUrl;
     private String description;
     private String dateString;
+    private int responseCode;
 
     public JResult() {
     }
@@ -144,6 +145,16 @@ public class JResult {
      */
     public String getDate() {
         return dateString;
+    }
+    
+    public void setResponseCode(int responseCode)
+    {
+        this.responseCode = responseCode;
+    }
+    
+    public int getResponseCode()
+    {
+        return responseCode;
     }
     
     @Override

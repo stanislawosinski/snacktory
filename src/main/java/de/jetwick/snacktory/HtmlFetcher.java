@@ -17,6 +17,7 @@ package de.jetwick.snacktory;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -62,7 +63,7 @@ public class HtmlFetcher {
             else
                 existing.add(domainStr);
 
-            String html = new HtmlFetcher().fetchAsString(url, 20000);
+            String html = new HtmlFetcher().fetchAsString(url, 20000, null);
             String outFile = domainStr + counterStr + ".html";
             BufferedWriter writer = new BufferedWriter(new FileWriter(outFile));
             writer.write(html);
@@ -226,15 +227,23 @@ public class HtmlFetcher {
         } else if (SHelper.isImage(lowerUrl)) {
             result.setImageUrl(url);
         } else {
-            extractor.extractContent(result, fetchAsString(url, timeout));
-            if (result.getFaviconUrl().isEmpty())
-                result.setFaviconUrl(SHelper.getDefaultFavicon(url));
-
-            // some links are relative to root and do not include the domain of the url :/
-            result.setFaviconUrl(fixUrl(url, result.getFaviconUrl()));
-            result.setImageUrl(fixUrl(url, result.getImageUrl()));
-            result.setVideoUrl(fixUrl(url, result.getVideoUrl()));
-            result.setRssUrl(fixUrl(url, result.getRssUrl()));
+            String contentAsString = "";
+            try {
+                contentAsString = fetchAsString(url, timeout, result);
+            } catch (IOException e) {
+                logger.warn("Content fetching failed, response code = " + result.getResponseCode(), e);
+            }
+            if (contentAsString.length() > 0) {
+                extractor.extractContent(result, contentAsString);
+                if (result.getFaviconUrl().isEmpty())
+                    result.setFaviconUrl(SHelper.getDefaultFavicon(url));
+    
+                // some links are relative to root and do not include the domain of the url :/
+                result.setFaviconUrl(fixUrl(url, result.getFaviconUrl()));
+                result.setImageUrl(fixUrl(url, result.getImageUrl()));
+                result.setVideoUrl(fixUrl(url, result.getVideoUrl()));
+                result.setRssUrl(fixUrl(url, result.getRssUrl()));
+            }
         }
         result.setText(lessText(result.getText()));        
         synchronized (result) {
@@ -257,18 +266,21 @@ public class HtmlFetcher {
         return SHelper.useDomainOfFirstArg4Second(url, urlOrPath);
     }
 
-    public String fetchAsString(String urlAsString, int timeout)
+    public String fetchAsString(String urlAsString, int timeout, RequestStatus status)
             throws MalformedURLException, IOException {
-        return fetchAsString(urlAsString, timeout, true);
+        return fetchAsString(urlAsString, timeout, true, status);
     }
 
-    public String fetchAsString(String urlAsString, int timeout, boolean includeSomeGooseOptions)
+    public String fetchAsString(String urlAsString, int timeout, boolean includeSomeGooseOptions, RequestStatus status)
             throws MalformedURLException, IOException {
         if (logger.isDebugEnabled())
             logger.debug("FetchAsString:" + urlAsString);
 
         HttpURLConnection hConn = createUrlConnection(urlAsString, timeout, includeSomeGooseOptions);
         hConn.setInstanceFollowRedirects(true);
+        if (status != null) {
+            status.setResponseCode(hConn.getResponseCode());
+        }
         InputStream is = hConn.getInputStream();
 
 //            if ("gzip".equals(hConn.getContentEncoding()))
@@ -285,10 +297,11 @@ public class HtmlFetcher {
      * (within the specified time) or the same url if response code is OK
      */
     public String getResolvedUrl(String urlAsString, int timeout) {
+        HttpURLConnection hConn = null;
         try {
             if (logger.isDebugEnabled())
                 logger.debug("getResolvedUrl:" + urlAsString);
-            HttpURLConnection hConn = createUrlConnection(urlAsString, timeout, true);
+            hConn = createUrlConnection(urlAsString, timeout, true);
             // force no follow
             hConn.setInstanceFollowRedirects(false);
             // the program doesn't care what the content actually is !!
@@ -296,7 +309,6 @@ public class HtmlFetcher {
             hConn.setRequestMethod("HEAD");
             hConn.connect();
             int responseCode = hConn.getResponseCode();
-            hConn.getInputStream().close();
             if (responseCode == HttpURLConnection.HTTP_OK)
                 return urlAsString;
 

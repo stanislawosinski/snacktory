@@ -30,7 +30,7 @@ public class OutputFormatter {
 
         StringBuilder sb = new StringBuilder();
         append(topNode, sb, "p");
-        String str = SHelper.innerTrim(sb.toString());
+        String str = SHelper.innerTrimKeepNewlines(sb.toString());
         if (str.length() > 100)
             return str;
 

@@ -587,7 +587,14 @@ public class ArticleTextExtractorTest {
         // this should fail as most sites do store their name after the post
         assertEquals("Irgendwas | mytitle irgendwas", extractor.cleanTitle("Irgendwas | mytitle irgendwas"));
     }
-
+    
+    @Test
+    public void testParagraphSeparation() throws Exception {
+        //String url = "http://news.cnet.com/8301-30686_3-20014053-266.html?tag=topStories1";
+        JResult article = extractor.extractContent(c.streamToString(getClass().getResourceAsStream("cnet.html")));
+        assertTrue(article.getText().contains("\n\n"));
+    }
+    
     /**
      * @param filePath the name of the file to open. Not sure if it can accept URLs 
      * or just filenames. Path handling could be better, and buffer sizes are hardcoded

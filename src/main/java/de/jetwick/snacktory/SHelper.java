@@ -25,6 +25,8 @@ import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
+import java.util.regex.Pattern;
+
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -38,6 +40,9 @@ import org.jsoup.nodes.Element;
 public class SHelper {
 
     public static final String UTF8 = "UTF-8";
+    
+    public static final Pattern TAB_SPACE = Pattern.compile("(\t| )+");
+    public static final Pattern TAB_SPACE_NEWLINE = Pattern.compile("(\t| |\n)+");
 
     public static int count(String str, String substring) {
         int c = 0;
@@ -53,27 +58,13 @@ public class SHelper {
      * remove more than two spaces or newlines
      */
     public static String innerTrim(String str) {
-        if (str.isEmpty())
-            return "";
-
-        StringBuilder sb = new StringBuilder();
-        boolean previousSpace = false;
-        for (int i = 0; i < str.length(); i++) {
-            char c = str.charAt(i);
-            if (c == ' ' || (int) c == 9 || c == '\n') {
-                previousSpace = true;
-                continue;
-            }
-
-            if (previousSpace)
-                sb.append(' ');
-
-            previousSpace = false;
-            sb.append(c);
-        }
-        return sb.toString().trim();
+        return TAB_SPACE_NEWLINE.matcher(str).replaceAll(" ").trim();
     }
 
+    public static String innerTrimKeepNewlines(String str) {
+        return TAB_SPACE.matcher(str).replaceAll(" ").trim();
+    }
+    
     /**
      * Starts reading the encoding from the first valid character until an invalid
      * encoding character occurs.

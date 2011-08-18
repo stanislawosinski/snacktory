@@ -22,7 +22,7 @@ public class ArticleTextExtractorTest {
         // ? http://www.npr.org/blogs/money/2010/10/04/130329523/how-fake-money-saved-brazil
         JResult res = extractor.extractContent(readFileAsString("test_data/1.html"));
         assertEquals("How Fake Money Saved Brazil : Planet Money : NPR", res.getTitle());
-        assertTrue(res.getText(), res.getText().startsWith("This is a story about how an economist and his buddies tricked the people of Brazil into saving the country from rampant inflation. They had a crazy, unlikely plan, and it worked. Twenty years ago, Brazil's"));
+        assertTrue(res.getText(), res.getText().startsWith("This is a story about how an economist and his buddies tricked the people of Brazil into saving the country from rampant inflation. They had a crazy, unlikely plan, and it worked.\n\nTwenty years ago, Brazil's"));
         assertTrue(res.getText().endsWith("\"How Four Drinking Buddies Saved Brazil.\""));
         assertEquals("http://media.npr.org/assets/img/2010/10/04/real_wide.jpg?t=1286218782&s=3", res.getImageUrl());
     }
@@ -303,7 +303,7 @@ public class ArticleTextExtractorTest {
     public void testFoxnews() throws Exception {
         //String url = "http://www.foxnews.com/politics/2010/08/14/russias-nuclear-help-iran-stirs-questions-improved-relations/";
         JResult article = extractor.extractContent(c.streamToString(getClass().getResourceAsStream("foxnews.html")));
-        assertTrue("Foxnews:" + article.getText(), article.getText().startsWith("Apr. 8: President Obama signs the New START treaty with Russian President Dmitry Medvedev at the Prague Castle. Russia's announcement "));
+        assertTrue("Foxnews:" + article.getText(), article.getText().startsWith("Apr. 8: President Obama signs the New START treaty with Russian President Dmitry Medvedev at the Prague Castle.\n\nRussia's announcement "));
         assertEquals("http://a57.foxnews.com/static/managed/img/Politics/397/224/startsign.jpg", article.getImageUrl());
     }
 

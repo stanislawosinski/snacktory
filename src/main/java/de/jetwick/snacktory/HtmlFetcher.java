@@ -187,6 +187,10 @@ public class HtmlFetcher {
     }
 
     public JResult fetchAndExtract(String url, int timeout, boolean resolve) throws Exception {
+        return fetchAndExtract(url, timeout, resolve, IHtmlTransformer.IDENTITY);
+    }
+    
+    public JResult fetchAndExtract(String url, int timeout, boolean resolve, IHtmlTransformer transformer) throws Exception {
         String originalUrl = url;
         url = SHelper.removeHashbang(url);
         String gUrl = SHelper.getUrlFromUglyGoogleRedirect(url);
@@ -255,7 +259,7 @@ public class HtmlFetcher {
                 logger.warn("Content fetching failed, response code = " + result.getResponseCode(), e);
             }
             if (contentAsString.length() > 0) {
-                extractor.extractContent(result, contentAsString);
+                extractor.extractContent(result, transformer.transform(contentAsString));
                 if (result.getFaviconUrl().isEmpty())
                     result.setFaviconUrl(SHelper.getDefaultFavicon(url));
     

@@ -7,6 +7,7 @@ import org.jsoup.*;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.List;
 import java.util.Set;
@@ -136,6 +137,12 @@ public class ArticleTextExtractor {
         // again
         if (res.getFaviconUrl().contains(" "))
             res.setFaviconUrl("");
+        
+        // Make the image URL absolute
+        if (!res.getImageUrl().isEmpty()) {
+            res.setImageUrl(toAbsoluteUrl(res.getImageUrl(), res.getUrl(),
+                doc.select("head base").attr("href")));
+        }
         
         return res;
     }
@@ -459,5 +466,54 @@ public class ArticleTextExtractor {
         }
 
         return SHelper.innerTrim(res.toString());
+    }
+
+    private static final Pattern URL_BASE_PATTERN = Pattern.compile("https?://[^/]*");
+    private static final Pattern URL_PARAMS_PATTERN = Pattern.compile("\\?.*$");
+    private static final Pattern URL_TRAILING_SLASH_PATTERN = Pattern.compile("/$");
+    private static final Pattern URL_LAST_SEGMENT_PATTERN = Pattern.compile("/(?<!http://)[^/]*$");
+
+    /**
+     * If the provided target URL is relative, converts it to an absolute URL using the
+     * provided site URL or base URL.
+     */
+    static String toAbsoluteUrl(String target, String site, String base)
+    {
+        if (isNotBlank(target) && !target.startsWith("http://")
+            && !target.startsWith("https://"))
+        {
+            final String siteNoParams = URL_PARAMS_PATTERN.matcher(site).replaceAll("");
+            if (target.startsWith("/"))
+            {
+                final Matcher matcher = URL_BASE_PATTERN.matcher(siteNoParams);
+                if (matcher.find())
+                {
+                    return matcher.group() + target;
+                }
+                else
+                {
+                    return target;
+                }
+            }
+            else
+            {
+                if (isNotBlank(base))
+                {
+                    return URL_TRAILING_SLASH_PATTERN.matcher(base).replaceAll("") + "/"
+                    + target;
+                }
+                else
+                {
+                    return URL_LAST_SEGMENT_PATTERN.matcher(siteNoParams).replaceAll("")
+                        + "/" + target;
+                }
+            }
+        }
+        return target;
+    }
+
+    private static boolean isNotBlank(String s)
+    {
+        return s != null && s.trim().length() > 0;
     }
 }

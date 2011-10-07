@@ -595,6 +595,45 @@ public class ArticleTextExtractorTest {
         assertTrue(article.getText().contains("\n\n"));
     }
     
+    @Test
+    public void testVmt() throws Exception {
+        //String url = "http://www.vmt.nl/nieuws/vmt-nieuws/2011/nvwa-sluit-eerste-convenant-verminderd-toezicht.162567.lynkx";
+        JResult article = extractor.extractContent(c.streamToString(getClass().getResourceAsStream("vmt.html")));
+        assertEquals("http://www.vmt.nl/Uploads/Cache/2011/9/110930110050.ei-3.resized.200x0.jpg", article.getImageUrl());
+    }
+    
+    @Test
+    public void absoluteUrlBuilding()
+    {
+        checkAbsoluteUrl("test.jpg", "http://test.com", "http://test.com/test.jpg");
+        checkAbsoluteUrl("test.jpg", "http://test.com/", "http://test.com/test.jpg");
+        checkAbsoluteUrl("test.jpg", "http://test.com/index.html", "http://test.com/test.jpg");
+        checkAbsoluteUrl("test.jpg", "http://test.com/dir/index.html", "http://test.com/dir/test.jpg");
+        checkAbsoluteUrl("test.jpg", "http://test.com?abc", "http://test.com/test.jpg");
+        checkAbsoluteUrl("test.jpg", "http://test.com?abc/cde", "http://test.com/test.jpg");
+        
+        checkAbsoluteUrl("/test.jpg", "http://test.com", "http://test.com/test.jpg");
+        checkAbsoluteUrl("/test.jpg", "http://test.com/", "http://test.com/test.jpg");
+        checkAbsoluteUrl("/test.jpg", "http://test.com/index.html", "http://test.com/test.jpg");
+        checkAbsoluteUrl("/test.jpg", "http://test.com/dir/index.html", "http://test.com/test.jpg");
+        checkAbsoluteUrl("/test.jpg", "http://test.com?abc", "http://test.com/test.jpg");
+        checkAbsoluteUrl("/test.jpg", "http://test.com?abc/cde", "http://test.com/test.jpg");
+        
+        checkAbsoluteUrl("test.jpg", "http://test.com", "http://abc.com", "http://abc.com/test.jpg");
+        checkAbsoluteUrl("test.jpg", "http://test.com", "http://abc.com/", "http://abc.com/test.jpg");
+        checkAbsoluteUrl("/test.jpg", "http://test.com", "http://abc.com/", "http://test.com/test.jpg");
+    }
+    
+    private void checkAbsoluteUrl(String target, String site, String expected)
+    {
+        assertEquals(expected, ArticleTextExtractor.toAbsoluteUrl(target, site, null));
+    }
+
+    private void checkAbsoluteUrl(String target, String site, String base, String expected)
+    {
+        assertEquals(expected, ArticleTextExtractor.toAbsoluteUrl(target, site, base));
+    }
+    
     /**
      * @param filePath the name of the file to open. Not sure if it can accept URLs 
      * or just filenames. Path handling could be better, and buffer sizes are hardcoded

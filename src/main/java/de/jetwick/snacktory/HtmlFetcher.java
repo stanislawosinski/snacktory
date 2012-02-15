@@ -219,8 +219,7 @@ public class HtmlFetcher {
                 return result.setUrl(url);
             }
 
-            // if resolved url is longer then use it!
-            if (resUrl != null && resUrl.trim().length() > url.length()) {
+            if (resUrl != null) {
                 // this is necessary e.g. for some homebaken url resolvers which returl 
                 // the resolved url relative to url!
                 url = SHelper.useDomainOfFirstArg4Second(url, resUrl);

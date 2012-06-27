@@ -17,7 +17,6 @@ package de.jetwick.snacktory;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -78,30 +77,10 @@ public class HtmlFetcher {
     private String accept = "application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
     private String charset = "UTF-8";
     private SCache cache;
+    private final int MAX_REDIRECTS = 10;
     private AtomicInteger cacheCounter = new AtomicInteger(0);
     private int maxTextLength = -1;
     private ArticleTextExtractor extractor = new ArticleTextExtractor();
-    private Set<String> shortServices = new LinkedHashSet<String>() {
-
-        {
-            add("bit.ly");
-            add("t.co");
-            add("ow.ly");
-            add("is.gd");
-            add("tr.im");
-            add("cli.gs");
-            add("tinyurl.com");
-            add("goo.gl");
-            add("deck.ly");
-            add("su.pr");
-            add("ink.co");
-            add("fur.ly");
-            add("tiny.cc");
-            add("plurl.us");
-            add("snurl.com");
-            add("twurl.nl");
-        }
-    };
 
     public HtmlFetcher() {
     }
@@ -208,7 +187,7 @@ public class HtmlFetcher {
             if (res != null)
                 return res;
 
-            String resUrl = getResolvedUrl(url, timeout);
+            String resUrl = getResolvedUrl(url, timeout, MAX_REDIRECTS);
             if (resUrl.isEmpty()) {
                 if (logger.isDebugEnabled())
                     logger.warn("resolved url is empty. Url is: " + url);
@@ -320,7 +299,10 @@ public class HtmlFetcher {
      * @return the resolved url if any. Or null if it couldn't resolve the url
      * (within the specified time) or the same url if response code is OK
      */
-    public String getResolvedUrl(String urlAsString, int timeout) {
+    public String getResolvedUrl(String urlAsString, int timeout, int attemptsLeft) {
+        if (attemptsLeft <= 0) {
+            return urlAsString;
+        }
         HttpURLConnection hConn = null;
         try {
             if (logger.isDebugEnabled())
@@ -342,11 +324,8 @@ public class HtmlFetcher {
                 if (urlAsString.startsWith("http://bit.ly") || urlAsString.startsWith("http://is.gd"))
                     newUrl = encodeUriFromHeader(newUrl);
                                 
-                // fix problems if shortened twice. as it is often the case after twitters' t.co bullshit
-                if (shortServices.contains(SHelper.extractDomain(newUrl, true)))                    
-                    newUrl = getResolvedUrl(newUrl, timeout);
-                
-                return newUrl;
+                // Resolve until limit is reached
+                return getResolvedUrl(newUrl, timeout, attemptsLeft - 1);
             } else
                 return urlAsString;
 

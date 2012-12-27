@@ -25,9 +25,12 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -269,20 +272,30 @@ public class HtmlFetcher {
         return SHelper.useDomainOfFirstArg4Second(url, urlOrPath);
     }
 
-    public String fetchAsString(String urlAsString, int timeout, RequestStatus status)
+    public String fetchAsString(String urlAsString, int timeout, RequestMetadata status)
             throws MalformedURLException, IOException {
         return fetchAsString(urlAsString, timeout, true, status);
     }
 
-    public String fetchAsString(String urlAsString, int timeout, boolean includeSomeGooseOptions, RequestStatus status)
+    private static final Set<String> DATE_HEADERS = new HashSet<String>(
+        Arrays.asList("Expires", "Last-Modified"));
+    
+    public String fetchAsString(String urlAsString, int timeout, boolean includeSomeGooseOptions, RequestMetadata resultMetadata)
             throws MalformedURLException, IOException {
         if (logger.isDebugEnabled())
             logger.debug("FetchAsString:" + urlAsString);
 
-        HttpURLConnection hConn = createUrlConnection(urlAsString, timeout, includeSomeGooseOptions);
+        HttpURLConnection hConn = createUrlConnection(urlAsString, timeout, includeSomeGooseOptions, true);
         hConn.setInstanceFollowRedirects(true);
-        if (status != null) {
-            status.setResponseCode(hConn.getResponseCode());
+        if (resultMetadata != null) {
+            resultMetadata.setResponseCode(hConn.getResponseCode());
+            for (String header : DATE_HEADERS)
+            {
+                final String value = hConn.getHeaderField(header);
+                if (value != null) {
+                    resultMetadata.addHeader(header, value);
+                }
+            }
         }
         InputStream is = hConn.getInputStream();
 
@@ -307,7 +320,7 @@ public class HtmlFetcher {
         try {
             if (logger.isDebugEnabled())
                 logger.debug("getResolvedUrl:" + urlAsString);
-            hConn = createUrlConnection(urlAsString, timeout, true);
+            hConn = createUrlConnection(urlAsString, timeout, true, false);
             // force no follow
             hConn.setInstanceFollowRedirects(false);
             // the program doesn't care what the content actually is !!
@@ -356,10 +369,11 @@ public class HtmlFetcher {
     }
 
     private HttpURLConnection createUrlConnection(String urlAsStr, int timeout,
-            boolean includeSomeGooseOptions) throws MalformedURLException, IOException {
+            boolean includeSomeGooseOptions, boolean allowProxy) throws MalformedURLException, IOException {
         URL url = new URL(urlAsStr);
         //using proxy may increase latency
-        HttpURLConnection hConn = (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
+        HttpURLConnection hConn = (HttpURLConnection) (allowProxy ? url.openConnection()
+            : url.openConnection(Proxy.NO_PROXY));
         hConn.setRequestProperty("User-Agent", userAgent);
         hConn.setRequestProperty("Accept", accept);
 

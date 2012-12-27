@@ -15,12 +15,15 @@
  */
 package de.jetwick.snacktory;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Parsed result from web page containing important title, text and image.
  * 
  * @author Peter Karich, jetwick_@_pannous_._info
  */
-public class JResult implements RequestStatus {
+public class JResult implements RequestMetadata {
 
     private String title;
     private String url;
@@ -33,6 +36,7 @@ public class JResult implements RequestStatus {
     private String description;
     private String dateString;
     private int responseCode;
+    private Map<String, String> headers = new HashMap<String, String>();
 
     public JResult() {
     }
@@ -157,6 +161,20 @@ public class JResult implements RequestStatus {
         return responseCode;
     }
     
+    
+    
+    @Override
+    public void addHeader(String name, String value)
+    {
+        headers.put(name, value);
+    }
+
+    @Override
+    public Map<String, String> getHeaders()
+    {
+        return headers;
+    }
+
     @Override
     public String toString() {
         return "title:" + getTitle() + " imageUrl:" + getImageUrl() + " text:" + text;

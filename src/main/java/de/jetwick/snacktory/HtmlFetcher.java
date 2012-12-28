@@ -240,7 +240,7 @@ public class HtmlFetcher {
                 logger.warn("Content fetching failed, response code = " + result.getResponseCode(), e);
             }
             if (contentAsString.length() > 0) {
-                extractor.extractContent(result, transformer.transform(contentAsString));
+                extractor.extractContent(result, transformer.transform(contentAsString, result.getEncoding()));
                 if (result.getFaviconUrl().isEmpty())
                     result.setFaviconUrl(SHelper.getDefaultFavicon(url));
     
@@ -304,8 +304,9 @@ public class HtmlFetcher {
 
         String enc = Converter.extractEncoding(hConn.getContentType());
         final Converter converter = new Converter(urlAsString);
+        final String string = converter.streamToString(is, enc);
         resultMetadata.setEncoding(converter.getEncoding());
-        return converter.streamToString(is, enc);
+        return string;
     }
 
     /**

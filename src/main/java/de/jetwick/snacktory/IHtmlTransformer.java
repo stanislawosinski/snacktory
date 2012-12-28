@@ -13,11 +13,11 @@ public interface IHtmlTransformer
     public static final IHtmlTransformer IDENTITY = new IHtmlTransformer()
     {
         @Override
-        public String transform(String tagsoup)
+        public String transform(String tagsoup, String encoding)
         {
             return tagsoup;
         }
     };
 
-    public String transform(String tagsoup);
+    public String transform(String tagsoup, String encoding);
 }

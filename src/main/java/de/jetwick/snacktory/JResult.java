@@ -37,6 +37,7 @@ public class JResult implements RequestMetadata {
     private String dateString;
     private int responseCode;
     private Map<String, String> headers = new HashMap<String, String>();
+    private String encoding;
 
     public JResult() {
     }
@@ -173,6 +174,17 @@ public class JResult implements RequestMetadata {
     public Map<String, String> getHeaders()
     {
         return headers;
+    }
+    
+    @Override
+    public void setEncoding(String encoding)
+    {
+        this.encoding = encoding;
+    }
+    
+    public String getEncoding()
+    {
+        return encoding;
     }
 
     @Override

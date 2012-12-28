@@ -303,7 +303,9 @@ public class HtmlFetcher {
 //                is = new GZIPInputStream(is);                        
 
         String enc = Converter.extractEncoding(hConn.getContentType());
-        return new Converter(urlAsString).streamToString(is, enc);
+        final Converter converter = new Converter(urlAsString);
+        resultMetadata.setEncoding(converter.getEncoding());
+        return converter.streamToString(is, enc);
     }
 
     /**

@@ -71,6 +71,12 @@ public class ConverterTest extends TestCase {
         assertEquals("iso-8859-15", d.getEncoding());
     }
 
+    public void testDetermineMetaEncoding() throws Exception {
+        Converter d = new Converter();
+        d.streamToString(getClass().getResourceAsStream("unit4.html"));
+        assertEquals("iso-8859-1", d.getEncoding());
+    }
+
     public void testMaxBytesExceedingButGetTitleNevertheless() throws Exception {
         Converter d = new Converter();
         d.setMaxBytes(10000);

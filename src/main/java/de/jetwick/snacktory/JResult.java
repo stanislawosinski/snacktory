@@ -15,7 +15,9 @@
  */
 package de.jetwick.snacktory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,7 +30,7 @@ public class JResult implements RequestMetadata {
     private String title;
     private String url;
     private String originalUrl;
-    private String imageUrl;
+    private List<String> imageUrls = new ArrayList<String>();
     private String videoUrl;
     private String rssUrl;
     private String text;
@@ -96,14 +98,12 @@ public class JResult implements RequestMetadata {
         return this;
     }
 
-    public String getImageUrl() {
-        if (imageUrl == null)
-            return "";
-        return imageUrl;
+    public List<String> getImageUrls() {
+        return imageUrls;
     }
 
-    public JResult setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public JResult addImageUrl(String imageUrl) {
+        this.imageUrls.add(imageUrl);
         return this;
     }
 
@@ -200,6 +200,6 @@ public class JResult implements RequestMetadata {
     
     @Override
     public String toString() {
-        return "title:" + getTitle() + " imageUrl:" + getImageUrl() + " text:" + text;
+        return "title:" + getTitle() + " text:" + text;
     }
 }

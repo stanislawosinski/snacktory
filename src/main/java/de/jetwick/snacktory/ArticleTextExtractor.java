@@ -1,7 +1,10 @@
 package de.jetwick.snacktory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import org.jsoup.*;
 import org.jsoup.nodes.Document;
@@ -94,9 +97,10 @@ public class ArticleTextExtractor {
         }
 
         if (bestMatchElement != null) {
-            Element imgEl = determineImageSource(bestMatchElement);
-            if (imgEl != null) {
-                res.setImageUrl(SHelper.innerTrim(imgEl.attr("src")));
+            List<Element> imgEl = determineImageSource(bestMatchElement);
+            for (Element element : imgEl)
+            {
+                res.addImageUrl(SHelper.innerTrim(element.attr("src")));
                 // TODO remove parent container of image if it is contained in bestMatchElement
                 // to avoid image subtitles flooding in
             }
@@ -112,15 +116,15 @@ public class ArticleTextExtractor {
         }
 
         // use open graph tag to get image
-        if (res.getImageUrl().isEmpty())
-            res.setImageUrl(SHelper.innerTrim(doc.select("head meta[property=og:image]").attr("content")));
+        if (res.getImageUrls().isEmpty())
+            res.addImageUrl(SHelper.innerTrim(doc.select("head meta[property=og:image]").attr("content")));
 
         // prefer link over thumbnail-meta if empty
-        if (res.getImageUrl().isEmpty())
-            res.setImageUrl(SHelper.innerTrim(doc.select("link[rel=image_src]").attr("href")));
+        if (res.getImageUrls().isEmpty())
+            res.addImageUrl(SHelper.innerTrim(doc.select("link[rel=image_src]").attr("href")));
 
-        if (res.getImageUrl().isEmpty())
-            res.setImageUrl(SHelper.innerTrim(doc.select("head meta[name=thumbnail]").attr("content")));
+        if (res.getImageUrls().isEmpty())
+            res.addImageUrl(SHelper.innerTrim(doc.select("head meta[name=thumbnail]").attr("content")));
 
         res.setRssUrl(SHelper.innerTrim(doc.select("link[rel=alternate]").select("link[type=application/rss+xml]").attr("href")));        
         
@@ -139,9 +143,12 @@ public class ArticleTextExtractor {
             res.setFaviconUrl("");
         
         // Make the image URL absolute
-        if (!res.getImageUrl().isEmpty()) {
-            res.setImageUrl(toAbsoluteUrl(res.getImageUrl(), res.getUrl(),
-                doc.select("head base").attr("href")));
+        final String base = doc.select("head base").attr("href");
+        final String mainUrl = res.getUrl();
+        final List<String> imgUrls = res.getImageUrls();
+        for (int i = 0; i < imgUrls.size(); i++)
+        {
+            imgUrls.set(i, toAbsoluteUrl(imgUrls.get(i), mainUrl, base));
         }
         
         return res;
@@ -272,13 +279,13 @@ public class ArticleTextExtractor {
         return val;
     }
 
-    public Element determineImageSource(Element el) {
-        int maxWeight = 0;
-        Element maxNode = null;
+    public List<Element> determineImageSource(Element el) {
         Elements els = el.select("img");
         if (els.isEmpty())
             els = el.parent().select("img");
 
+        final List<ElementWithWeight> selectedImages = new ArrayList<ElementWithWeight>();
+        
         double score = 1;
         for (Element e : els) {
             String sourceUrl = e.attr("src");
@@ -318,14 +325,38 @@ public class ArticleTextExtractor {
             }
 
             weight = (int) (weight * score);
-            if (weight > maxWeight) {
-                maxWeight = weight;
-                maxNode = e;
+            if (weight > 0) {
+                selectedImages.add(new ElementWithWeight(e, weight));
                 score = score / 2;
             }
         }
+        
+        Collections.sort(selectedImages);
+        final List<Element> result = new ArrayList<Element>();
+        for (ElementWithWeight elementWithWeight : selectedImages)
+        {
+            result.add(elementWithWeight.element);
+        }
 
-        return maxNode;
+        return result;
+    }
+    
+    private static final class ElementWithWeight implements Comparable<ElementWithWeight>
+    {
+        private final Element element;
+        private final double weight;
+        
+        public ElementWithWeight(Element element, double  weight)
+        {
+            this.element = element;
+            this.weight = weight;
+        }
+
+        @Override
+        public int compareTo(ElementWithWeight o)
+        {
+            return weight > o.weight ? 1 : weight < o.weight ? -1 : 0;
+        }
     }
 
     /** 

@@ -231,7 +231,7 @@ public class HtmlFetcher {
         } else if (SHelper.isVideo(lowerUrl) || SHelper.isAudio(lowerUrl)) {
             result.setVideoUrl(url);
         } else if (SHelper.isImage(lowerUrl)) {
-            result.setImageUrl(url);
+            result.addImageUrl(url);
         } else {
             String contentAsString = "";
             try {
@@ -248,7 +248,6 @@ public class HtmlFetcher {
     
                 // some links are relative to root and do not include the domain of the url :/
                 result.setFaviconUrl(fixUrl(url, result.getFaviconUrl()));
-                result.setImageUrl(fixUrl(url, result.getImageUrl()));
                 result.setVideoUrl(fixUrl(url, result.getVideoUrl()));
                 result.setRssUrl(fixUrl(url, result.getRssUrl()));
             }

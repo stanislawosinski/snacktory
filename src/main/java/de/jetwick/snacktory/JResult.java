@@ -38,7 +38,8 @@ public class JResult implements RequestMetadata {
     private int responseCode;
     private Map<String, String> headers = new HashMap<String, String>();
     private String encoding;
-
+    private String rawHtml;
+    
     public JResult() {
     }
     
@@ -187,6 +188,16 @@ public class JResult implements RequestMetadata {
         return encoding;
     }
 
+    public void setRawHtml(String rawHtml)
+    {
+        this.rawHtml = rawHtml;
+    }
+    
+    public String getRawHtml()
+    {
+        return rawHtml;
+    }
+    
     @Override
     public String toString() {
         return "title:" + getTitle() + " imageUrl:" + getImageUrl() + " text:" + text;

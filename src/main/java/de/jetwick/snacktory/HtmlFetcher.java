@@ -240,7 +240,9 @@ public class HtmlFetcher {
                 logger.warn("Content fetching failed, response code = " + result.getResponseCode(), e);
             }
             if (contentAsString.length() > 0) {
-                extractor.extractContent(result, transformer.transform(contentAsString, result.getEncoding()));
+                final String rawHtml = transformer.transform(contentAsString, result.getEncoding());
+                result.setRawHtml(rawHtml);
+                extractor.extractContent(result, rawHtml);
                 if (result.getFaviconUrl().isEmpty())
                     result.setFaviconUrl(SHelper.getDefaultFavicon(url));
     

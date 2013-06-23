@@ -65,7 +65,7 @@ public class HtmlFetcher {
             else
                 existing.add(domainStr);
 
-            String html = new HtmlFetcher().fetchAsString(url, 20000, null);
+            String html = new HtmlFetcher().fetchAsString(url, 20000, null, IConnectionConfigurator.NOOP);
             String outFile = domainStr + counterStr + ".html";
             BufferedWriter writer = new BufferedWriter(new FileWriter(outFile));
             writer.write(html);
@@ -169,10 +169,11 @@ public class HtmlFetcher {
     }
 
     public JResult fetchAndExtract(String url, int timeout, boolean resolve) throws Exception {
-        return fetchAndExtract(url, timeout, resolve, IHtmlTransformer.IDENTITY);
+        return fetchAndExtract(url, timeout, resolve, IHtmlTransformer.IDENTITY, IConnectionConfigurator.NOOP);
     }
     
-    public JResult fetchAndExtract(String url, int timeout, boolean resolve, IHtmlTransformer transformer) throws Exception {
+    public JResult fetchAndExtract(String url, int timeout, boolean resolve, IHtmlTransformer transformer,
+            IConnectionConfigurator configurator) throws Exception {
         String originalUrl = url;
         url = SHelper.removeHashbang(url);
         String gUrl = SHelper.getUrlFromUglyGoogleRedirect(url);
@@ -235,7 +236,7 @@ public class HtmlFetcher {
         } else {
             String contentAsString = "";
             try {
-                contentAsString = fetchAsString(url, timeout, result);
+                contentAsString = fetchAsString(url, timeout, result, configurator);
             } catch (IOException e) {
                 logger.warn("Content fetching failed, response code = " + result.getResponseCode(), e);
             }
@@ -273,21 +274,23 @@ public class HtmlFetcher {
         return SHelper.useDomainOfFirstArg4Second(url, urlOrPath);
     }
 
-    public String fetchAsString(String urlAsString, int timeout, RequestMetadata status)
+    public String fetchAsString(String urlAsString, int timeout, RequestMetadata status, IConnectionConfigurator configurator)
             throws MalformedURLException, IOException {
-        return fetchAsString(urlAsString, timeout, true, status);
+        return fetchAsString(urlAsString, timeout, true, status, configurator);
     }
 
     private static final Set<String> DATE_HEADERS = new HashSet<String>(
         Arrays.asList("Expires", "Last-Modified"));
     
-    public String fetchAsString(String urlAsString, int timeout, boolean includeSomeGooseOptions, RequestMetadata resultMetadata)
+    public String fetchAsString(String urlAsString, int timeout, boolean includeSomeGooseOptions, 
+        RequestMetadata resultMetadata, IConnectionConfigurator configurator)
             throws MalformedURLException, IOException {
         if (logger.isDebugEnabled())
             logger.debug("FetchAsString:" + urlAsString);
 
         HttpURLConnection hConn = createUrlConnection(urlAsString, timeout, includeSomeGooseOptions, true);
         hConn.setInstanceFollowRedirects(true);
+        configurator.configure(hConn);
         if (resultMetadata != null) {
             resultMetadata.setResponseCode(hConn.getResponseCode());
             for (String header : DATE_HEADERS)

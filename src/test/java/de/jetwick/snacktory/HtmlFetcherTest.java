@@ -128,7 +128,7 @@ public class HtmlFetcherTest {
 
     @Test
     public void testXml() throws Exception {
-        String str = new HtmlFetcher().fetchAsString("http://karussell.wordpress.com/feed/", 10000, null);
+        String str = new HtmlFetcher().fetchAsString("http://karussell.wordpress.com/feed/", 10000, null, IConnectionConfigurator.NOOP);
         assertTrue(str, str.startsWith("<?xml version="));
     }
     

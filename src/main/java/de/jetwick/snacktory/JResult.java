@@ -198,6 +198,10 @@ public class JResult implements RequestMetadata {
         return rawHtml;
     }
     
+    public String getImageUrl() {
+        return imageUrls.isEmpty() ? "" : imageUrls.get(0);
+    }
+    
     @Override
     public String toString() {
         return "title:" + getTitle() + " text:" + text;

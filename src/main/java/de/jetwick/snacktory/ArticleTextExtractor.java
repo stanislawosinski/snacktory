@@ -499,6 +499,7 @@ public class ArticleTextExtractor {
         return SHelper.innerTrim(res.toString());
     }
 
+    private static final Pattern URL_PROTOCOL_PATTERN = Pattern.compile("(https?:).*$");
     private static final Pattern URL_BASE_PATTERN = Pattern.compile("https?://[^/]*");
     private static final Pattern URL_PARAMS_PATTERN = Pattern.compile("\\?.*$");
     private static final Pattern URL_TRAILING_SLASH_PATTERN = Pattern.compile("/$");
@@ -510,6 +511,16 @@ public class ArticleTextExtractor {
      */
     static String toAbsoluteUrl(String target, String site, String base)
     {
+        if (target.startsWith("//"))
+        {
+            final Matcher matcher = URL_PROTOCOL_PATTERN.matcher(site);
+            if (matcher.find())
+            {
+                final String protocol = matcher.group(1);
+                return protocol + target;
+            }
+        }
+        
         if (isNotBlank(target) && !target.startsWith("http://")
             && !target.startsWith("https://"))
         {

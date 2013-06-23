@@ -611,6 +611,7 @@ public class ArticleTextExtractorTest {
         checkAbsoluteUrl("test.jpg", "http://test.com/dir/index.html", "http://test.com/dir/test.jpg");
         checkAbsoluteUrl("test.jpg", "http://test.com?abc", "http://test.com/test.jpg");
         checkAbsoluteUrl("test.jpg", "http://test.com?abc/cde", "http://test.com/test.jpg");
+        checkAbsoluteUrl("test.jpg", "http://test.com?abc/cde", "http://test.com/test.jpg");
         
         checkAbsoluteUrl("/test.jpg", "http://test.com", "http://test.com/test.jpg");
         checkAbsoluteUrl("/test.jpg", "http://test.com/", "http://test.com/test.jpg");
@@ -622,6 +623,9 @@ public class ArticleTextExtractorTest {
         checkAbsoluteUrl("test.jpg", "http://test.com", "http://abc.com", "http://abc.com/test.jpg");
         checkAbsoluteUrl("test.jpg", "http://test.com", "http://abc.com/", "http://abc.com/test.jpg");
         checkAbsoluteUrl("/test.jpg", "http://test.com", "http://abc.com/", "http://test.com/test.jpg");
+
+        checkAbsoluteUrl("//test.com/test.jpg", "http://test.com", "http://test.com/test.jpg");
+        checkAbsoluteUrl("//test.com/test.jpg", "https://test.com", "https://test.com/test.jpg");
     }
     
     private void checkAbsoluteUrl(String target, String site, String expected)
